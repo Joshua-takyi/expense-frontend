@@ -14,8 +14,22 @@ interface AppContextType {
 
 export const AppContext = createContext<AppContextType | null>(null);
 
-// Function to get CSRF token from the backend
-const getCsrfToken = async (
+// Function to get CSRF token from cookies
+const getCsrfTokenFromCookies = (): string | null => {
+  if (typeof document === "undefined") return null;
+
+  const cookies = document.cookie.split(";");
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split("=");
+    if (name === "csrf_token") {
+      return decodeURIComponent(value);
+    }
+  }
+  return null;
+};
+
+// Function to get CSRF token from the backend (fallback)
+const getCsrfTokenFromServer = async (
   instance: AxiosInstance
 ): Promise<string | null> => {
   try {
@@ -50,7 +64,14 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         config.url?.includes("/csrf-token");
 
       if (mutationMethods && !isAuthRequest) {
-        const csrfToken = await getCsrfToken(instance);
+        // First try to get CSRF token from cookies
+        let csrfToken = getCsrfTokenFromCookies();
+
+        // If not found in cookies, get from server as fallback
+        if (!csrfToken) {
+          csrfToken = await getCsrfTokenFromServer(instance);
+        }
+
         if (csrfToken) {
           config.headers["X-CSRF-Token"] = csrfToken;
         }
@@ -69,8 +90,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         if (error.response?.status === 403 && !originalRequest._retry) {
           originalRequest._retry = true;
 
-          // Get a fresh CSRF token and retry the request
-          const csrfToken = await getCsrfToken(instance);
+          // Get a fresh CSRF token from server and retry the request
+          const csrfToken = await getCsrfTokenFromServer(instance);
           if (csrfToken) {
             originalRequest.headers["X-CSRF-Token"] = csrfToken;
             return instance(originalRequest);

@@ -1,0 +1,46 @@
+export const categories = [
+  { key: "food", label: "Food & Dining" },
+  { key: "groceries", label: "Groceries" },
+  { key: "transport", label: "Transportation" },
+  { key: "fuel", label: "Fuel" },
+  { key: "parking", label: "Parking" },
+  { key: "shopping", label: "Shopping" },
+  { key: "clothing", label: "Clothing" },
+  { key: "electronics", label: "Electronics" },
+  { key: "entertainment", label: "Entertainment" },
+  { key: "dining_out", label: "Dining Out" },
+  { key: "bills", label: "Bills & Utilities" },
+  { key: "rent", label: "Rent/Mortgage" },
+  { key: "utilities", label: "Utilities" },
+  { key: "phone_internet", label: "Phone & Internet" },
+  { key: "insurance", label: "Insurance" },
+  { key: "healthcare", label: "Healthcare" },
+  { key: "personal_care", label: "Personal Care" },
+  { key: "fitness", label: "Gym & Fitness" },
+  { key: "education", label: "Education" },
+  { key: "travel", label: "Travel" },
+  { key: "home_maintenance", label: "Home Maintenance" },
+  { key: "pets", label: "Pets" },
+  { key: "childcare", label: "Childcare" },
+  { key: "gifts", label: "Gifts" },
+  { key: "charity", label: "Charity" },
+  { key: "subscriptions", label: "Subscriptions" },
+  { key: "debt_payments", label: "Debt Payments" },
+  { key: "savings", label: "Savings" },
+  { key: "salary", label: "Salary" },
+  { key: "freelance", label: "Freelance" },
+  { key: "investment", label: "Investment" },
+  { key: "taxes", label: "Taxes" },
+  { key: "hobbies", label: "Hobbies" },
+  { key: "other", label: "Other" },
+];
+
+export const amount = [
+  { key: "asc", label: "Amount: Low to High" },
+  { key: "desc", label: "Amount: High to Low" },
+];
+
+export const date = [
+  { key: "new", label: "Date: New to Old" },
+  { key: "old", label: "Date: Old to New" },
+];

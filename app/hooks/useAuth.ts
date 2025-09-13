@@ -2,9 +2,9 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAppContext } from "../context/appcontext";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
+import { addToast } from "@heroui/react";
 export interface User {
   id: string;
   name: string;
@@ -36,10 +36,20 @@ export const useAuth = () => {
       return response.data;
     },
     onSuccess: (data) => {
-      // Invalidate and refetch user queries after successful login
-      queryClient.invalidateQueries({ queryKey: ["user"] });
+      addToast({
+        title: "Success",
+        description: "Logged in successfully",
+      });
       queryClient.setQueryData(["user"], data.data);
-      toast.success("Login successful");
+    },
+    onError: (error: AxiosError) => {
+      addToast({
+        title: "Error",
+        description:
+          (error.response?.data as { message: string } | undefined)?.message ||
+          "Login failed",
+        color: "danger",
+      });
     },
   });
 
@@ -58,14 +68,20 @@ export const useAuth = () => {
       return response.data;
     },
     onSuccess: () => {
-      toast.success("Logged out successfully");
+      addToast({
+        title: "Success",
+        description: "Logged out successfully",
+      });
       router.push("/auth/signin");
     },
     onError: (error: AxiosError) => {
-      toast.error(
-        (error.response?.data as { message?: string })?.message ||
-          "Logout failed"
-      );
+      addToast({
+        title: "Error",
+        description:
+          (error.response?.data as { message: string } | undefined)?.message ||
+          "Logout failed",
+        color: "danger",
+      });
     },
   });
 

@@ -18,14 +18,14 @@ export default function SignInForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    try {
-      await login.mutateAsync(formData);
-      // On successful login, redirect to dashboard
-      router.push("/dashboard");
-    } catch (error) {
-      console.error("Login failed:", error);
-    }
+    await login.mutateAsync(formData, {
+      onSuccess: () => {
+        router.push("/dashboard");
+      },
+      onError: () => {
+        login.reset();
+      },
+    });
   };
 
   return (
@@ -64,12 +64,6 @@ export default function SignInForm() {
               errorMessage={login.isError ? "Invalid email or password" : ""}
               isInvalid={login.isError}
             />
-
-            {login.isError && (
-              <div className="text-sm text-danger text-center">
-                {login.error?.message || "Login failed. Please try again."}
-              </div>
-            )}
 
             <Button
               type="submit"

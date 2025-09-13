@@ -15,28 +15,15 @@ import { useAuth } from "../hooks/useAuth";
 import { useCallback } from "react";
 
 interface SignOutDialogProps {
-  /**
-   * Custom trigger element. If not provided, defaults to an exit icon button.
-   */
   trigger?: React.ReactNode;
-  /**
-   * Additional className for the trigger element
-   */
+
   triggerClassName?: string;
-  /**
-   * Callback fired when sign out is successful
-   */
+
   onSignOutSuccess?: () => void;
-  /**
-   * Callback fired when sign out fails
-   */
+
   onSignOutError?: (error: Error) => void;
 }
 
-/**
- * A reusable sign-out confirmation dialog component.
- * Provides a modal dialog to confirm user logout with proper error handling and loading states.
- */
 export default function SignOutDialog({
   trigger,
   triggerClassName = "",
@@ -49,10 +36,9 @@ export default function SignOutDialog({
   const handleSignOut = useCallback(async () => {
     try {
       await logout.mutateAsync();
-      onOpenChange(); // Close modal
+      onOpenChange();
       onSignOutSuccess?.();
     } catch (error) {
-      // Don't close modal on error so user can retry
       onSignOutError?.(
         error instanceof Error ? error : new Error("Sign out failed")
       );
@@ -63,7 +49,6 @@ export default function SignOutDialog({
     onOpenChange();
   }, [onOpenChange]);
 
-  // Default trigger element
   const defaultTrigger = (
     <Tooltip content="Sign out" placement="bottom" delay={500}>
       <Button
