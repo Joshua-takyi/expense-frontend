@@ -6,6 +6,7 @@ import { Input } from "@heroui/input";
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
+import { useSession } from "../hooks/useSession";
 
 export default function SignInForm() {
   const [formData, setFormData] = useState({
@@ -14,12 +15,15 @@ export default function SignInForm() {
   });
 
   const { login, isLoading } = useAuth();
+  const { refetch: refetchSession } = useSession();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await login.mutateAsync(formData, {
-      onSuccess: () => {
+      onSuccess: async () => {
+        // After successful login, refetch session to update auth state
+        await refetchSession();
         router.push("/dashboard");
       },
       onError: () => {
