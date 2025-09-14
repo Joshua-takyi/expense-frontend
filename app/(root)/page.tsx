@@ -1,5 +1,3 @@
-import { ThemeSwitch } from "@/app/components/theme-provider";
-
 export default function Home() {
   return (
     <div>

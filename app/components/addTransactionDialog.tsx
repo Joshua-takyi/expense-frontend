@@ -2,111 +2,239 @@
 
 import {
   Modal,
+  Input,
+  Select,
+  SelectItem,
   ModalContent,
   ModalHeader,
   ModalBody,
+  Textarea,
   ModalFooter,
   Button,
   useDisclosure,
 } from "@heroui/react";
-import { useEffect, useState } from "react";
-interface transactionDialogProps {
+import { useState } from "react";
+import {
+  CreateTransactionData,
+  useTransactions,
+} from "../hooks/useTransactions";
+
+interface TransactionDialogProps {
   trigger?: React.ReactNode;
   triggerClassName?: string;
-  onCreateSuccess?: () => void;
-  onCreateError?: (error: Error) => void;
 }
+
 export default function TransactionDialog({
   trigger,
   triggerClassName,
-  onCreateSuccess,
-  onCreateError,
-}: transactionDialogProps) {
+}: TransactionDialogProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [isMobile, setIsMobile] = useState(false);
+  const { createTransaction } = useTransactions();
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const handleResize = () => {
-        if (window.innerWidth < 640) {
-          // Tailwind's 'sm' breakpoint is 640px
-          // Set to full for mobile
-          setIsMobile(true);
-        } else {
-          setIsMobile(false);
-        }
-      };
-      window.addEventListener("resize", handleResize);
-      handleResize(); // Initial check
-      return () => window.removeEventListener("resize", handleResize);
-    }
+  const [formData, setFormData] = useState<CreateTransactionData>({
+    amount: 0,
+    type: "expense",
+    category: "",
+    description: "",
+    note: "",
   });
-  const customTrigger = trigger ? (
-    <Button
-      onPress={onOpen}
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onOpen();
-        }
-      }}
-      role="button"
-      aria-label="Open Add Transaction Dialog"
-      className={`cursor-pointer ${triggerClassName}`}
-    >
-      {trigger}
-    </Button>
-  ) : null;
 
-  const defaultTrigger = (
+  const categories = {
+    expense: [
+      { key: "food", label: "Food & Dining" },
+      { key: "transport", label: "Transportation" },
+      { key: "shopping", label: "Shopping" },
+      { key: "entertainment", label: "Entertainment" },
+      { key: "bills", label: "Bills & Utilities" },
+      { key: "healthcare", label: "Healthcare" },
+      { key: "other", label: "Other" },
+    ],
+    income: [
+      { key: "salary", label: "Salary" },
+      { key: "freelance", label: "Freelance" },
+      { key: "investment", label: "Investment" },
+      { key: "business", label: "Business" },
+      { key: "other", label: "Other" },
+    ],
+  };
+
+  const resetForm = () => {
+    setFormData({
+      amount: 0,
+      type: "expense",
+      category: "",
+      description: "",
+      note: "",
+    });
+  };
+
+  const handleSubmit = async () => {
+    if (!formData.amount || formData.amount <= 0 || !formData.category) return;
+
+    try {
+      await createTransaction.mutateAsync(formData);
+      resetForm();
+      onOpenChange();
+    } catch (error) {
+      console.error("Failed to create transaction:", error);
+    }
+  };
+
+  const currentCategories = categories[formData.type];
+  const isFormValid = formData.amount > 0 && formData.category;
+
+  const TriggerButton = () => (
     <Button
       onPress={onOpen}
-      tabIndex={0}
-      color="danger"
-      variant="shadow"
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onOpen();
-        }
-      }}
-      role="button"
-      aria-label="Open Add Transaction Dialog"
-      className={`cursor-pointer ${triggerClassName}`}
+      color="primary"
+      variant="solid"
+      className={triggerClassName}
+      size="md"
     >
-      Add Transaction
+      {trigger || "Add Transaction"}
     </Button>
   );
+
   return (
     <>
-      {customTrigger || defaultTrigger}
+      <TriggerButton />
       <Modal
         isOpen={isOpen}
         onOpenChange={onOpenChange}
-        size={isMobile ? "lg" : "5xl"}
+        size="2xl"
         isDismissable
-        // backdrop="blur"
       >
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1"></ModalHeader>
-              <ModalBody>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                Reprehenderit enim quia excepturi repellendus quod cum iusto,
-                aperiam facere officia soluta praesentium mollitia? Facere
-                ducimus, ipsum et deleniti corrupti impedit, optio praesentium
-                dignissimos iure perspiciatis esse quisquam a magni quidem
-                expedita temporibus qui ex maxime. Voluptas dolor dolores qui id
-                culpa?
+              <ModalHeader>
+                <h2 className="text-lg font-semibold">Add Transaction</h2>
+              </ModalHeader>
+
+              <ModalBody className="space-y-4">
+                {/* Transaction Type */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Type</label>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={
+                        formData.type === "income" ? "solid" : "bordered"
+                      }
+                      color={formData.type === "income" ? "success" : "default"}
+                      size="sm"
+                      onPress={() =>
+                        setFormData({
+                          ...formData,
+                          type: "income",
+                          category: "",
+                        })
+                      }
+                      className="flex-1"
+                    >
+                      Income
+                    </Button>
+                    <Button
+                      variant={
+                        formData.type === "expense" ? "solid" : "bordered"
+                      }
+                      color={formData.type === "expense" ? "danger" : "default"}
+                      size="sm"
+                      onPress={() =>
+                        setFormData({
+                          ...formData,
+                          type: "expense",
+                          category: "",
+                        })
+                      }
+                      className="flex-1"
+                    >
+                      Expense
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Amount */}
+                <Input
+                  label="Amount"
+                  type="number"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0.01"
+                  value={
+                    formData.amount === 0 ? "" : formData.amount.toString()
+                  }
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      amount: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                  startContent="$"
+                  isRequired
+                />
+
+                {/* Category */}
+                <Select
+                  label="Category"
+                  placeholder="Select category"
+                  selectedKeys={formData.category ? [formData.category] : []}
+                  onSelectionChange={(keys) =>
+                    setFormData({
+                      ...formData,
+                      category: (Array.from(keys)[0] as string) || "",
+                    })
+                  }
+                  isRequired
+                >
+                  {currentCategories.map((category) => (
+                    <SelectItem key={category.key}>{category.label}</SelectItem>
+                  ))}
+                </Select>
+
+                {/* Description */}
+                <Input
+                  label="Description"
+                  placeholder="Brief description (optional)"
+                  value={formData.description || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                />
+
+                {/* Notes */}
+                <Textarea
+                  label="Notes"
+                  placeholder="Additional notes (optional)"
+                  value={formData.note || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, note: e.target.value })
+                  }
+                  minRows={2}
+                  maxRows={4}
+                />
+
+                {/* Error Message */}
+                {createTransaction.isError && (
+                  <div className="text-sm text-danger">
+                    {createTransaction.error?.message ||
+                      "Failed to create transaction"}
+                  </div>
+                )}
               </ModalBody>
+
               <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Close
+                <Button color="default" variant="light" onPress={onClose}>
+                  Cancel
                 </Button>
-                <Button color="primary" onPress={onClose}>
-                  Action
+                <Button
+                  color="primary"
+                  isLoading={createTransaction.isPending}
+                  isDisabled={!isFormValid}
+                  onPress={handleSubmit}
+                >
+                  {createTransaction.isPending
+                    ? "Adding..."
+                    : "Add Transaction"}
                 </Button>
               </ModalFooter>
             </>

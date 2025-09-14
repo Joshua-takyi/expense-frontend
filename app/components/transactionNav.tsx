@@ -44,7 +44,7 @@ const TransactionNav = ({
     <Wrapper>
       <div className="flex justify-between items-center space-y-6">
         <span className="text-2xl font-bold">Transactions</span>
-        <TransactionDialog />
+        <TransactionDialog trigger={<span>Add Transaction</span>} />
       </div>
 
       <section className="grid lg:grid-cols-6 grid-cols-2 gap-4 ">
